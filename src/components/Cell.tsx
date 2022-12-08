@@ -7,14 +7,10 @@ interface Props {
   isProtected: boolean;
   onChange: (newValue: string) => void;
   onKeyUp;
-  ref;
+  innerRef;
 }
 
-export const WrappedCell = React.forwardRef((props: Props, ref) => {
-  return <Cell {...props} ref={ref} />;
-});
-
-const Cell: React.FC<Props> = ({ value, isProtected = false, onChange, onKeyUp, ref }) => {
+const Cell: React.FC<Props> = ({ value, isProtected = false, onChange, onKeyUp, innerRef }) => {
   const [tempValue, setTempValue] = useState(null);
 
   const onBlurHandler = () => {
@@ -41,7 +37,7 @@ const Cell: React.FC<Props> = ({ value, isProtected = false, onChange, onKeyUp, 
         onBlur={onBlurHandler}
         onChange={onChangeHandler}
         onKeyUp={onKeyUp}
-        ref={ref}
+        ref={innerRef}
       />
     </Box>
   );

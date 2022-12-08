@@ -1,8 +1,8 @@
 import { Box, Flex, Input } from '@chakra-ui/react';
 import _ from 'lodash';
-import React, { useRef, useState } from 'react';
+import React, { createRef, useRef, useState } from 'react';
 
-import { WrappedCell } from 'components/Cell';
+import Cell from 'components/Cell';
 import { getCellContent, isProtected } from 'utils';
 import { INITIAL_CELL_VALUE, NUM_COLUMNS, NUM_ROWS } from '../utils/config';
 
@@ -16,6 +16,8 @@ const Spreadsheet: React.FC = () => {
     _.times(NUM_ROWS, (row) => _.times(NUM_COLUMNS, (col) => getCellContent(row, col))),
   );
 
+  const cellRefs = _.times(NUM_ROWS, (row) => _.times(NUM_COLUMNS, (col) => createRef()));
+
   const parseNewValue = (newValue) => {
     if (newValue == INITIAL_CELL_VALUE) {
       return newValue;
@@ -26,21 +28,24 @@ const Spreadsheet: React.FC = () => {
     return isValidDollarValue ? formattedDollarValue : newValue;
   };
 
-  const cellRefs = useRef([]);
-
-  const handleArrowKey = (e, targetElem) => {
-    if (!targetElem) {
-      return;
-    }
-
-    if (e.keyCode == '38') {
-      // up arrow
-    } else if (e.keyCode == '40') {
-      // down arrow
-    } else if (e.keyCode == '37') {
-      // left arrow
-    } else if (e.keyCode == '39') {
-      // right arrow
+  const handleArrowKey = (e, rowIdx, columnIdx) => {
+    try {
+      if (e.keyCode == '38') {
+        // up arrow
+        cellRefs[rowIdx - 1][columnIdx].current.focus();
+      } else if (e.keyCode == '40') {
+        // down arrow
+        cellRefs[rowIdx + 1][columnIdx].current.focus();
+      } else if (e.keyCode == '37') {
+        // left arrow
+        cellRefs[rowIdx][columnIdx - 1].current.focus();
+      } else if (e.keyCode == '39') {
+        // right arrow
+        cellRefs[rowIdx][columnIdx + 1].current.focus();
+      }
+    } catch (error) {
+      // expected error logged when going out of bounds
+      console.error(error);
     }
   };
 
@@ -50,12 +55,11 @@ const Spreadsheet: React.FC = () => {
         return (
           <Flex key={String(rowIdx)}>
             {row.map((cellValue, columnIdx) => (
-              <WrappedCell
+              <Cell
                 key={`${rowIdx}/${columnIdx}`}
                 isProtected={isProtected(rowIdx, columnIdx)}
-                // Todo: implement arrow movements
-                onKeyUp={(e) => handleArrowKey(e, cellRefs.current[columnIdx + 1])}
-                ref={cellRefs.current[columnIdx]}
+                onKeyUp={(e) => handleArrowKey(e, rowIdx, columnIdx)}
+                innerRef={cellRefs[rowIdx][columnIdx]}
                 value={cellValue}
                 onChange={(newValue: string) => {
                   const newRow = [
